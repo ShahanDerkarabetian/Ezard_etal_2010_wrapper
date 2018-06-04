@@ -7,3 +7,5 @@ https://doi.org/10.1186/1471-2148-10-175
 
 
 See help file for instructions.
+
+Casey Richart helped test the scripts.
