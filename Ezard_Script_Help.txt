@@ -1,0 +1,130 @@
+###################################################################
+Help file written by Shahan Derkarabetian
+scripts created sometime back in 2013, modified May 2018
+###################################################################
+
+I have turned the Ezard et al. (2010) protocol into an executable wrapper script, which produces many useful output files and plots.
+I take no responsibility for the creation of this method. I merely make it easier to implement for those less familiar with R.
+
+As such, please cite: 
+Ezard, T.H.G., P.N. Pearson, A. Purvis. 2010. Algorithmic approaches to aid species’ delimitation in multidimensional morphospace. BMC Evolutionary Biology 10: 175.
+
+Although if you use these scripts, an additional reference to my GitHub page is appreciated. You know, job search, broader impacts, and such.
+
+There are two scripts: "Ezard_script_commandline.R" to be executed via Unix command line, and "Ezard_Script_R", the command for execution in R or Rstudio.
+
+
+
+###################################################################
+REQUIREMENTS:
+###################################################################
+
+The scripts has been tested and work on R versions 3.0-3.3. 
+R 3.4 has an issue with a required package if run through command line, although it works with R 3.4.4 through RStudio.
+
+Required R packages: "pcaPP", "mclust", "mvoutlier", "vegan", "gplots"
+To install: install.packages("package_name")
+
+
+
+###################################################################
+INPUT FILES:
+###################################################################
+
+<data_file>:
+A .csv file containing the morphometric dataset, where each row is a set of measurements for a single sample. 
+Do not include row or column names. See example_data.csv.
+
+<taxon_file>:
+A .csv file with two columns: 
+Column 1 - a priori taxon/group assignments corresponding to each row in the dataset.
+Column 2 - sample voucher/names/numbers
+It should contain the same number of rows as data_file. Do not include column names. See example_taxon.csv.
+
+
+
+###################################################################
+COMMANDLINE VERSION
+###################################################################
+
+Ezard_Script.R and the two input files should be in the same folder. 
+
+The "Ezard_Script_commandline.R" file is executed via Unix command. cd to the folder and run: 
+Rscript Ezard_Script_commandline.R <data_file> <taxon_file>
+
+To run the example: 
+Rscript Ezard_Script_commandline.R example_data.csv example_taxon.csv
+
+
+
+###################################################################
+SETTINGS/THRESHOLDS
+###################################################################
+
+Several settings are automatically set, but can be changed if necessary:
+	k, automatically set to the number of characters in the dataset 
+	scale, set to use the median absolute deviation (mad)
+	center, uses the median
+	method, uses the "qn" estimator
+	qcrit, set to 0.975
+If you want to change the k, scale, center and/or method settings see "pcaPP" R package instructions for options.
+
+
+
+###################################################################
+OUTPUT FILES:
+###################################################################
+
+All output files are written to the directory "Ezard_output".
+
+retained_components.csv 	- retained principal components
+BIC.csv				- BIC table
+outliers.csv		- outlier identification, 0=outlier
+groups.csv			- cluster assignments for each taxon
+squared_eigenvalues.csv		- squared eigenvalues for all components
+full_results.csv			- contains species, voucher, retained components, group assignments, and outlier status information for all samples
+model_choice.txt		- resulting model choice
+clusters.pdf			- principal component scatterplot of first two PCs, grouped by clusters
+taxa.pdf			- principal component scatterplot of first two PCs, grouped by a priori taxon
+samples.pdf			- scatterplot, labeled by voucher/sample name
+taxa_key.pdf		- legend for taxa.pdf. a separate file so you can place it anywhere you want on taxa.pdf
+
+
+
+###################################################################
+NOTES/ISSUES
+###################################################################
+
+Note that the taxon_file names do not necessarily have to correspond to species. They can be population names, morphological groups, geographic groups, anything. 
+The groupings play no role in the determination of clusters. This is included for output purposes, if you want to color code your resulting plot by some a priori or a posteriori grouping.
+That said, the script does require at least two different values.
+
+
+
+This method expects a complete dataset with no missing data. If you are missing values for some specimens, either the missing impute values, or consider removing the variable. 
+Otherwise, it will give you this error:
+
+In max(which(m1$sdev^2 > bstick(m1))) :
+  no non-missing arguments to max; returning -Inf
+Error in 1:nk : result would be too long a vector
+Execution halted
+
+
+
+To make this script more efficient, it only outputs plots for the first two Principal Components.
+If more than 2 components are retained you will have to plot the other pairwise plots yourself.
+If only one component is retained, the X-axis in the plot will be "samples". Beware of this.
+If three components are retained, you can make a cool, rotatable 3D scatterplot with the rgl package:
+
+require("rgl")
+plot3d(x=c(pp[,2]), y=c(pp[,3]), z=c(pp[,4]), group=c(pp[,1]), type="p", col=group, xlab="Comp1", ylab="Comp2", zlab="Comp3", size=5, lwd=15, box=F)
+M <- par3d("userMatrix")
+play3d( par3dinterp( userMatrix=list(M,rotate3d(M, angle=pi, x=0 , y=1, z=0))), duration=1)
+
+
+
+For more than 10 taxa/groups (column 1 in <taxon_file>), make sure all groups were given different colors in the taxa_key.pdf output file. If not, you can adjust the R color settings, or edit the pdf.
+
+
+
+For some reason, this script also produces an empty file called Rplots.pdf. I don't know. Just delete it.
