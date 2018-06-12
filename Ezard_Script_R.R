@@ -31,7 +31,7 @@ mod1  = Mclust(tt[,1:4])
 bic   <-mod1$BIC[1:9,]
 
 ## prints output to screen
-nk		## nk = # of clusters
+nk		## nk = # of components
 m2		## m2 = Mclust model choice
 out		## out = outlier report [0=outlier]
 bic		## bic = BIC table
